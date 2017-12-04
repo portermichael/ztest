@@ -39,43 +39,56 @@ function cssStringToColor (colorString) {
     return result;
   }
 
-  function convertCharToInteger (arrayOfChars) {
-    // I don't know of a great way to get js to use hex instead of base 10, so we need to do some kind of converstion. I first used a clunky switch statement and though using unicode would be doing the same thing. It is essentially doing the same thing, but now I've got it all in one line.
+  function convertHexCharToInteger (arrayOfChars) {
+    // I don't know of a great way to get js to use hex instead of base 10, so we need to do some kind of converstion.
     let convertHexChars = [];
-    return arrayOfChars.map((element) => {
+    arrayOfChars.map((element) => {
       if (element >= 0 && element <= 9) {
         convertHexChars.push(element);
       } else {
         convertHexChars.push(element.charCodeAt() - 87);
       }
     });
+    return convertHexChars;
   }
 
   function hexToBinary (arrayOfHex) {
-    function convertHexToBinary (hexDigit) {
-      // This could be done recurisvely, but js isn't really optimized for recursion. I think the clarity of nomenclature and extracting out the helper function makes our code small and clean enough to maintain readability.
-      let binaryArray = [0, 0, 0, 0];
-      function maintainBase2 (baseTwoArray, position) {
-        if (baseTwoArray[position] === 2) {
-          baseTwoArray[position] = baseTwoArray[position]--;
-          baseTwoArray[position - 1] = baseTwoArray[position - 1]++;
-        }
+    let result = [];
+
+    function maintainBase2 (baseTwoArray, position) {
+      if (baseTwoArray[position] === 2) {
+        baseTwoArray[position] = baseTwoArray[position] -2;
+        baseTwoArray[position - 1]++;
       }
-      while (0 < element <= 15) {
+    }
+
+    function convertDigitHexToBinary (hexDigit) {
+      // This could be done recurisvely, but js isn't really optimized for recursion.
+      // This could be a source of improvement.
+      let binaryArray = [0, 0, 0, 0];
+      while (hexDigit > 0 && hexDigit <= 15) {
         binaryArray[3] = binaryArray[3] + 1;
         for (let i = 3; i !== 0; i--) {
           maintainBase2 (binaryArray, i)
         }
-        element--;
+        hexDigit--;
       }
       return binaryArray;
     }
-
-    return arrayOfHex.map(convertHexToBinary(element));
+    let potato = arrayOfHex.map(convertDigitHexToBinary);
+    return potato.reduce((a, b) => a.concat(b), []);
   }
 
-  function binaryToBase10 () {
-
+  function binaryToBase10 (binaryArray) {
+    let toThePower = 0;
+    let total = 0;
+    for (let i = 23; i !== -1; i--) {
+      if(binaryArray[i]) {
+        total = total + Math.pow(2, toThePower)
+      }
+      toThePower++;
+    }
+    return total;
   }
   // We are iterating, inserting and validating elements in our string. I would argue it's easier to interpret and understand the code by just making it an array once, rather than manipulating it as a string.
   let strSplitLowArray = colorString.toLowerCase().split('');
@@ -83,9 +96,14 @@ function cssStringToColor (colorString) {
   if (strSplitLowArray.length === 4) {
     strSplitLowArray = threeToSixHex(strSplitLowArray)
   }
-  // i now have a vaild array of length 7.
+
   strSplitLowArray = prepStringToColorArr(strSplitLowArray);
-  console.log(strSplitLowArray, 'end');
+  strSplitLowArray = convertHexCharToInteger(strSplitLowArray);
+
+  strSplitLowArray = hexToBinary(strSplitLowArray);
+  // console.log(strSplitLowArray, 'close');
+  return binaryToBase10(strSplitLowArray);
+  // console.log(strSplitLowArray, 'end');
 }
 
 
